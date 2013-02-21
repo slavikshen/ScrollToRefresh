@@ -24,6 +24,15 @@
 
 #import <AppKit/AppKit.h>
 
+@class EQSTRScrollView;
+
+@protocol EQSTRScrollViewDelegate <NSObject>
+
+@optional
+- (void)didRequestRefreshByScrollView:(EQSTRScrollView*)scrollView;
+
+@end
+
 @interface EQSTRScrollView : NSScrollView
 @property (readonly) BOOL isRefreshing;
 
@@ -32,6 +41,8 @@
 @property (readonly) NSView *refreshArrow;
 
 @property (nonatomic, copy) void (^refreshBlock)(EQSTRScrollView *scrollView);
+
+@property (nonatomic,assign) IBOutlet id<EQSTRScrollViewDelegate> delegate;
 
 - (void)startLoading;
 - (void)stopLoading;

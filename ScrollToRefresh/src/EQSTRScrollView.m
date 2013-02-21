@@ -26,7 +26,7 @@
 #import "EQSTRClipView.h"
 #import <QuartzCore/QuartzCore.h>
 
-#define REFRESH_HEADER_HEIGHT 60.0f
+#define REFRESH_HEADER_HEIGHT 44.0f
 
 // code modeled from https://github.com/leah/PullToRefresh/blob/master/Classes/PullRefreshTableViewController.m
 
@@ -94,25 +94,24 @@
 	// delete old stuff if any
 	if (self.refreshHeader) {		
 		[_refreshHeader removeFromSuperview];
-		[_refreshHeader release];
 		_refreshHeader = nil;
 	}
 	
 	[self setVerticalScrollElasticity:NSScrollElasticityAllowed];
 	
-	(void)self.contentView; // create new content view
+	NSClipView* contentView = self.contentView; // create new content view
 	
-	[self.contentView setPostsFrameChangedNotifications:YES];
-	[self.contentView setPostsBoundsChangedNotifications:YES];
+	[contentView setPostsFrameChangedNotifications:YES];
+	[contentView setPostsBoundsChangedNotifications:YES];
 	
 	[[NSNotificationCenter defaultCenter] addObserver:self 
 											 selector:@selector(viewBoundsChanged:)
 												 name:NSViewBoundsDidChangeNotification 
-											   object:self.contentView];
+											   object:contentView];
 	
 	// add header view to clipview
-	NSRect contentRect = [self.contentView.documentView frame];
-	_refreshHeader = [[NSView alloc] initWithFrame:NSMakeRect(0, 
+	NSRect contentRect = [contentView.documentView frame];
+	_refreshHeader = [[NSView alloc] initWithFrame:NSMakeRect(0,
 															  0 - REFRESH_HEADER_HEIGHT,
 															  contentRect.size.width, 
 															  REFRESH_HEADER_HEIGHT)];
@@ -162,13 +161,14 @@
 	[self.refreshHeader addSubview:self.refreshArrow];
 	[self.refreshHeader addSubview:self.refreshSpinner];
 	
-	[self.contentView addSubview:self.refreshHeader];	
+	[contentView addSubview:self.refreshHeader];
 	
 	[_refreshArrow release];
 	[_refreshSpinner release];
+    [_refreshHeader release];
 	
 	// Scroll to top
-	[self.contentView scrollToPoint:NSMakePoint(contentRect.origin.x, 0)];
+	[contentView scrollToPoint:NSMakePoint(contentRect.origin.x, 0)];
 	[self reflectScrolledClipView:self.contentView];
 }
 
@@ -178,6 +178,9 @@
 	if (event.phase == NSEventPhaseEnded) {
 		if (self._overRefreshView && ! self.isRefreshing) {
 			[self startLoading];
+            if([_delegate respondsToSelector:@selector(didRequestRefreshByScrollView:)]) {
+                [_delegate performSelector:@selector(didRequestRefreshByScrollView:) withObject:self];
+            }
 		}
 	}
 	
@@ -241,11 +244,11 @@
 	[self.refreshSpinner stopAnimation:self];
 	
 	// now fake an event of scrolling for a natural look
-	
+    
 	[self willChangeValueForKey:@"isRefreshing"];
 	_isRefreshing = NO;
 	[self didChangeValueForKey:@"isRefreshing"];
-	
+    
 	CGEventRef cgEvent   = CGEventCreateScrollWheelEvent(NULL,
 														 kCGScrollEventUnitLine,
 														 2,
