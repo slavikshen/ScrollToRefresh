@@ -31,20 +31,21 @@
 @end
 
 @interface EQSTRClipView ()
-- (BOOL)isRefreshing;
-- (NSView *)headerView;
-- (CGFloat)minimumScroll;
+
 @end
 
 @implementation EQSTRClipView
-- (NSPoint)constrainScrollPoint:(NSPoint)proposedNewOrigin { // this method determines the "elastic" of the scroll view or how high it can scroll without resistence. 	
+- (NSPoint)constrainScrollPoint:(NSPoint)proposedNewOrigin { // this method determines the "elastic" of the scroll view or how high it can scroll without resistence.
+
+    EQSTRScrollView* scrollView = (EQSTRScrollView*)self.superview;
+    
 	NSPoint constrained = [super constrainScrollPoint:proposedNewOrigin];
 	CGFloat scrollValue = proposedNewOrigin.y; // this is the y value where the top of the document view is
-	BOOL over           = scrollValue <= self.minimumScroll;
+	BOOL over           = scrollValue <= scrollView.minimumScroll;
 	
-	if (self.isRefreshing && scrollValue <= 0) { // if we are refreshing
+	if (scrollView.isRefreshing && scrollValue <= 0) { // if we are refreshing
 		if (over) // and if we are scrolled above the refresh view
-			proposedNewOrigin.y = 0 - self.headerView.frame.size.height; // constrain us to the refresh view
+			proposedNewOrigin.y = 0 - scrollView.refreshHeader.frame.size.height; // constrain us to the refresh view
 		
 		return NSMakePoint(constrained.x, proposedNewOrigin.y);
 	}
@@ -57,23 +58,15 @@
 
 - (NSRect)documentRect { //this is to make scrolling feel more normal so that the spinner is within the scrolled area
 	NSRect sup = [super documentRect];
-	if (self.isRefreshing) {
-		sup.size.height += self.headerView.frame.size.height;
-		sup.origin.y    -= self.headerView.frame.size.height;
+    EQSTRScrollView* scrollView = (EQSTRScrollView*)self.superview;
+    
+	if (scrollView.isRefreshing) {
+        CGFloat h = scrollView.refreshHeader.frame.size.height;
+		sup.size.height += h;
+		sup.origin.y    -= h;
 	}
 	return sup;
 }
 
-- (BOOL)isRefreshing {
-	return [(EQSTRScrollView *)self.superview isRefreshing];
-}
-
-- (NSView *)headerView {
-	return [(EQSTRScrollView *)self.superview refreshHeader];
-}
-
-- (CGFloat)minimumScroll {
-	return [(EQSTRScrollView *)self.superview minimumScroll];
-}
 
 @end

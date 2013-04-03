@@ -34,13 +34,13 @@
 @end
 
 @interface EQSTRScrollView : NSScrollView
-@property (readonly) BOOL isRefreshing;
+@property (nonatomic,readonly,assign) BOOL isRefreshing;
 
-@property (readonly) NSView *refreshHeader;
-@property (readonly) NSProgressIndicator *refreshSpinner;
-@property (readonly) NSView *refreshArrow;
+@property (nonatomic,readonly,retain) NSView *refreshHeader;
+@property (nonatomic,readonly) NSProgressIndicator *refreshSpinner;
+@property (nonatomic,readonly) NSView *refreshArrow;
 
-@property (nonatomic, copy) void (^refreshBlock)(EQSTRScrollView *scrollView);
+@property (nonatomic,copy) void (^refreshBlock)(EQSTRScrollView *scrollView);
 
 @property (nonatomic,assign) IBOutlet id<EQSTRScrollViewDelegate> delegate;
 
